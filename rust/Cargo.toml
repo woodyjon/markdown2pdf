@@ -1,0 +1,34 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/core",
+    "crates/cli",
+    "crates/wasm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Jonathan Gross"]
+
+[workspace.dependencies]
+typst = "0.14.2"
+typst-pdf = "0.14.2"
+typst-library = "0.14.2"
+typst-syntax = "0.14.2"
+typst-utils = "0.14.2"
+pulldown-cmark = { version = "0.13", default-features = false }
+comemo = "0.5"
+ecow = "0.2"
+
+# Workspace lints
+[workspace.lints.rust]
+unused_must_use = "deny"
+
+# Optimize binary size for release builds
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = "symbols"

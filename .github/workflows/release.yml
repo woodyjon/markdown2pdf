@@ -1,0 +1,99 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Intel Macs (x86_64-apple-darwin) are not built: GitHub-hosted
+          # macos-13 runners frequently sit unallocated for 30+ minutes and the
+          # vast majority of active Mac users are on Apple Silicon. Intel users
+          # can build from source with `cargo install --git ...`.
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tar.gz
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo registry / target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Build CLI
+        run: cargo build --release --target ${{ matrix.target }} --manifest-path rust/Cargo.toml -p markdown2pdf-cli
+
+      - name: Package (Unix)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          cd rust/target/${{ matrix.target }}/release
+          tar czf "markdown2pdf-${{ matrix.target }}.tar.gz" markdown2pdf
+
+      - name: Package (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          cd rust/target/${{ matrix.target }}/release
+          Compress-Archive -Path markdown2pdf.exe -DestinationPath "markdown2pdf-${{ matrix.target }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: markdown2pdf-${{ matrix.target }}
+          path: rust/target/${{ matrix.target }}/release/markdown2pdf-${{ matrix.target }}.${{ matrix.archive }}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate SHA256SUMS
+        run: |
+          cd dist
+          sha256sum markdown2pdf-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Publish release
+        # Pinned to the commit SHA of softprops/action-gh-release v2
+        # because this step has contents:write permission.
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: |
+            dist/markdown2pdf-*
+            dist/SHA256SUMS
+          draft: false
+          generate_release_notes: true
+          fail_on_unmatched_files: true

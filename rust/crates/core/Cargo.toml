@@ -1,0 +1,20 @@
+[package]
+name = "markdown2pdf-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Convert markdown to PDF using typst as the layout engine."
+
+[lints]
+workspace = true
+
+[dependencies]
+typst.workspace = true
+typst-pdf.workspace = true
+typst-library.workspace = true
+typst-syntax.workspace = true
+typst-utils.workspace = true
+pulldown-cmark.workspace = true
+comemo.workspace = true
+ecow.workspace = true

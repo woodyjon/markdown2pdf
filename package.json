@@ -1,0 +1,35 @@
+{
+  "name": "markdown2pdf",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/woodyjon/markdown2pdf"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:wasm": "bash rust/build-wasm.sh",
+    "build:cli": "cargo build --manifest-path rust/Cargo.toml --release -p markdown2pdf-cli",
+    "test:rust": "cargo test --manifest-path rust/Cargo.toml --workspace",
+    "deploy": "bun run build:wasm && bun run build && firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.59.1",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "@types/markdown-it": "^14.1.2",
+    "svelte": "^5.55.5",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.1",
+    "markdown-it-anchor": "^9.2.0",
+    "markdown-it-task-lists": "^2.1.1"
+  },
+  "type": "module"
+}

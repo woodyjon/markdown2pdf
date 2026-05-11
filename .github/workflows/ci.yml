@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust workspace (fmt + clippy + test + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: cargo fmt --check
+        run: cargo fmt --manifest-path rust/Cargo.toml --all -- --check
+      - name: cargo clippy
+        run: cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+      - name: cargo test
+        run: cargo test --manifest-path rust/Cargo.toml --workspace
+      - name: Build CLI
+        run: cargo build --release --manifest-path rust/Cargo.toml -p markdown2pdf-cli
+
+  web:
+    name: Web build (SvelteKit + WASM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version "^0.2" --locked
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+      - name: bun audit (fail on high or critical)
+        run: bun audit --audit-level=high
+      - name: Build WASM
+        run: bun run build:wasm
+      - name: WASM smoke test
+        run: bun scripts/test-wasm.mjs
+      - name: Build site
+        run: bun run build
+      - name: Upload site bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-build
+          path: build
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Firebase Hosting
+    needs: [rust, web]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: build
+      - name: Write .firebaserc from repo variables
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_SITE_ID: ${{ vars.FIREBASE_SITE_ID }}
+        run: |
+          if [[ -z "$FIREBASE_PROJECT_ID" || -z "$FIREBASE_SITE_ID" ]]; then
+            echo "::error::FIREBASE_PROJECT_ID and FIREBASE_SITE_ID repository variables must be set"
+            exit 1
+          fi
+          cat > .firebaserc <<EOF
+          {
+            "projects": { "default": "${FIREBASE_PROJECT_ID}" },
+            "targets": {
+              "${FIREBASE_PROJECT_ID}": {
+                "hosting": {
+                  "markdown2pdf": ["${FIREBASE_SITE_ID}"]
+                }
+              }
+            }
+          }
+          EOF
+      - name: Deploy
+        # Pinned to the commit SHA of FirebaseExtended/action-hosting-deploy v0
+        # (= v0.10.0) because this step authenticates with the deploy service account.
+        uses: FirebaseExtended/action-hosting-deploy@e2eda2e106cfa35cdbcf4ac9ddaf6c4756df2c8c # v0.10.0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          target: markdown2pdf
+          channelId: live

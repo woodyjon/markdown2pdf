@@ -1,0 +1,62 @@
+name: Deploy preview to Firebase Hosting on PR
+
+on: pull_request
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_preview:
+    # Only run for PRs from the same repo — forks don't have access to secrets,
+    # and we don't want to leak the deploy key.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version "^0.2" --locked
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+      - name: Build WASM
+        run: bun run build:wasm
+      - name: Build site
+        run: bun run build
+      - name: Write .firebaserc from repo variables
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_SITE_ID: ${{ vars.FIREBASE_SITE_ID }}
+        run: |
+          if [[ -z "$FIREBASE_PROJECT_ID" || -z "$FIREBASE_SITE_ID" ]]; then
+            echo "::error::FIREBASE_PROJECT_ID and FIREBASE_SITE_ID repository variables must be set"
+            exit 1
+          fi
+          cat > .firebaserc <<EOF
+          {
+            "projects": { "default": "${FIREBASE_PROJECT_ID}" },
+            "targets": {
+              "${FIREBASE_PROJECT_ID}": {
+                "hosting": {
+                  "markdown2pdf": ["${FIREBASE_SITE_ID}"]
+                }
+              }
+            }
+          }
+          EOF
+      - name: Deploy preview channel
+        # Pinned to the commit SHA of FirebaseExtended/action-hosting-deploy v0
+        # (= v0.10.0) because this step authenticates with the deploy service account.
+        uses: FirebaseExtended/action-hosting-deploy@e2eda2e106cfa35cdbcf4ac9ddaf6c4756df2c8c # v0.10.0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          target: markdown2pdf
