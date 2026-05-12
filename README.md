@@ -6,7 +6,7 @@ Convert Markdown to PDF — three ways, one engine.
 
 - **Web playground**: <https://markdown2pdf.eu>
 - **CLI**: single binary, `markdown2pdf in.md -o out.pdf`
-- **Claude skill**: drop-in skill so Claude can do it for you ([`skills/markdown2pdf/`](skills/markdown2pdf/))
+- **Claude skill** (or any other ai agent): drop-in skill so your agent can do it for you ([`skills/markdown2pdf/`](skills/markdown2pdf/))
 - **Rust crate**: embed the converter in your own program ([`rust/crates/core`](rust/crates/core))
 
 The same Rust code drives every entry point. Typst as the layout engine, Inter + JetBrains Mono embedded for portable vector PDFs.
@@ -18,6 +18,10 @@ The same Rust code drives every entry point. Typst as the layout engine, Inter +
 ### Use it
 
 Just go to <https://markdown2pdf.eu>. Paste markdown, click Download.
+
+## AI agent skill
+
+Just tell your agent to check that repo and grab the skill, then ask him to convert a markdown file to a pdf file.
 
 ### CLI
 
