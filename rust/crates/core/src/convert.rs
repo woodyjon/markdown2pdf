@@ -166,8 +166,9 @@ enum Frame {
     Doc,
     /// Inside a paragraph; flush adds two newlines on close.
     Paragraph,
-    /// Inside a heading.
-    Heading,
+    /// Inside a heading. `plain` accumulates raw text for slug generation,
+    /// so `End(Heading)` can emit a matching Typst label.
+    Heading { plain: String },
     /// Inside a fenced or indented code block. Content is appended raw.
     CodeBlock {
         info: String,
@@ -273,7 +274,9 @@ impl Emitter {
             Tag::Heading { level, .. } => {
                 let n = heading_level_to_int(level);
                 self.write(&format!("\n{} ", "=".repeat(n)));
-                self.frames.push(Frame::Heading);
+                self.frames.push(Frame::Heading {
+                    plain: String::new(),
+                });
             }
             Tag::BlockQuote(_) => {
                 self.frames.push(Frame::BlockQuote);
@@ -346,7 +349,17 @@ impl Emitter {
                 self.frames.push(Frame::Strike);
             }
             Tag::Link { dest_url, .. } => {
-                self.write(&format!("#link(\"{}\")[", escape_string_literal(&dest_url)));
+                // Intra-document links like `[text](#some-heading)` become
+                // Typst label references so they jump within the PDF.
+                let label = dest_url
+                    .strip_prefix('#')
+                    .map(slugify)
+                    .filter(|s| !s.is_empty());
+                if let Some(label) = label {
+                    self.write(&format!("#link(<{}>)[", label));
+                } else {
+                    self.write(&format!("#link(\"{}\")[", escape_string_literal(&dest_url)));
+                }
                 self.frames.push(Frame::Link);
             }
             Tag::Image {
@@ -388,7 +401,13 @@ impl Emitter {
                 self.write("\n\n");
             }
             TagEnd::Heading(_) => {
-                let _ = self.frames.pop();
+                let frame = self.frames.pop();
+                if let Some(Frame::Heading { plain }) = frame {
+                    let slug = slugify(&plain);
+                    if !slug.is_empty() {
+                        self.write(&format!(" <{}>", slug));
+                    }
+                }
                 self.write("\n\n");
             }
             TagEnd::BlockQuote(_) => {
@@ -493,6 +512,14 @@ impl Emitter {
         if matches!(self.frames.last(), Some(Frame::CodeBlock { .. })) {
             self.write(t);
         } else {
+            if let Some(Frame::Heading { plain }) = self
+                .frames
+                .iter_mut()
+                .rev()
+                .find(|f| matches!(f, Frame::Heading { .. }))
+            {
+                plain.push_str(t);
+            }
             let escaped = escape_text(t);
             self.write(&escaped);
         }
@@ -508,6 +535,63 @@ impl Emitter {
         debug_assert_eq!(self.bufs.len(), 1, "buffer stack should unwind cleanly");
         self.bufs.into_iter().next().unwrap()
     }
+}
+
+/// Fold a unicode character to ASCII for slug generation. Typst label syntax
+/// (`<…>`) accepts only ASCII letters/digits/`-`/`_`/`.`/`:`, so accented
+/// characters are stripped of their diacritics. Unknown non-ASCII characters
+/// pass through and will be filtered out by the slugifier.
+fn fold_to_ascii(ch: char) -> &'static str {
+    match ch {
+        'à' | 'á' | 'â' | 'ã' | 'ä' | 'å' | 'À' | 'Á' | 'Â' | 'Ã' | 'Ä' | 'Å' => "a",
+        'æ' | 'Æ' => "ae",
+        'ç' | 'Ç' => "c",
+        'è' | 'é' | 'ê' | 'ë' | 'È' | 'É' | 'Ê' | 'Ë' => "e",
+        'ì' | 'í' | 'î' | 'ï' | 'Ì' | 'Í' | 'Î' | 'Ï' => "i",
+        'ñ' | 'Ñ' => "n",
+        'ò' | 'ó' | 'ô' | 'õ' | 'ö' | 'ø' | 'Ò' | 'Ó' | 'Ô' | 'Õ' | 'Ö' | 'Ø' => "o",
+        'œ' | 'Œ' => "oe",
+        'ß' => "ss",
+        'ù' | 'ú' | 'û' | 'ü' | 'Ù' | 'Ú' | 'Û' | 'Ü' => "u",
+        'ý' | 'ÿ' | 'Ý' | 'Ÿ' => "y",
+        _ => "",
+    }
+}
+
+/// GitHub-style slug for an anchor or heading: lowercase, ASCII-only,
+/// spaces collapse to single `-`, other punctuation is dropped. Matches
+/// the form most authors use in `[text](#slug)` links.
+fn slugify(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut prev_dash = true;
+    for ch in s.chars() {
+        let mapped = if ch.is_ascii() {
+            None
+        } else {
+            let f = fold_to_ascii(ch);
+            if f.is_empty() { None } else { Some(f) }
+        };
+        let iter: Box<dyn Iterator<Item = char>> = match mapped {
+            Some(f) => Box::new(f.chars()),
+            None => Box::new(std::iter::once(ch)),
+        };
+        for c in iter {
+            let lc = c.to_ascii_lowercase();
+            if lc.is_ascii_alphanumeric() || lc == '_' {
+                out.push(lc);
+                prev_dash = false;
+            } else if lc == '-' || lc.is_whitespace() {
+                if !prev_dash {
+                    out.push('-');
+                    prev_dash = true;
+                }
+            }
+        }
+    }
+    while out.ends_with('-') {
+        out.pop();
+    }
+    out
 }
 
 fn heading_level_to_int(level: HeadingLevel) -> usize {
@@ -615,6 +699,32 @@ mod tests {
         let out = markdown_to_typst("- [x] done\n- [ ] todo\n");
         assert!(out.contains("#gh-checkbox(true)"));
         assert!(out.contains("#gh-checkbox(false)"));
+    }
+
+    #[test]
+    fn slug_basic() {
+        assert_eq!(slugify("Vue d'ensemble"), "vue-densemble");
+        assert_eq!(slugify("Réservation détaillée"), "reservation-detaillee");
+        assert_eq!(slugify("  Hello,  World!  "), "hello-world");
+        assert_eq!(slugify("A — B"), "a-b");
+    }
+
+    #[test]
+    fn heading_emits_label() {
+        let out = markdown_to_typst("## Vue d'ensemble\n");
+        assert!(out.contains("== Vue d'ensemble <vue-densemble>"));
+    }
+
+    #[test]
+    fn intra_doc_link_uses_label() {
+        let out = markdown_to_typst("[go](#vue-densemble)\n");
+        assert!(out.contains("#link(<vue-densemble>)[go]"));
+    }
+
+    #[test]
+    fn external_link_still_uses_string() {
+        let out = markdown_to_typst("[ex](https://example.com)\n");
+        assert!(out.contains("#link(\"https://example.com\")[ex]"));
     }
 
     #[test]

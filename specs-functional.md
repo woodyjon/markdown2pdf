@@ -32,7 +32,7 @@ The Rust crate [`markdown2pdf-core`](rust/crates/core) is also available for emb
 
 - Headings (h1-h6) with visual hierarchy
 - **Bold**, *italic*, ~~strikethrough~~
-- Links (auto-linked URLs and explicit links)
+- Links (auto-linked URLs and explicit links). Intra-document links such as `[text](#heading-slug)` become clickable jumps to the matching heading inside the PDF; the heading slug follows the conventional lowercase-with-hyphens form (e.g. `## Vue d'ensemble` → `#vue-densemble`).
 - Blockquotes
 - Ordered and unordered lists
 - Task lists (checkboxes)
