@@ -168,7 +168,9 @@ enum Frame {
     Paragraph,
     /// Inside a heading. `plain` accumulates raw text for slug generation,
     /// so `End(Heading)` can emit a matching Typst label.
-    Heading { plain: String },
+    Heading {
+        plain: String,
+    },
     /// Inside a fenced or indented code block. Content is appended raw.
     CodeBlock {
         info: String,
@@ -569,7 +571,11 @@ fn slugify(s: &str) -> String {
             None
         } else {
             let f = fold_to_ascii(ch);
-            if f.is_empty() { None } else { Some(f) }
+            if f.is_empty() {
+                None
+            } else {
+                Some(f)
+            }
         };
         let iter: Box<dyn Iterator<Item = char>> = match mapped {
             Some(f) => Box::new(f.chars()),
