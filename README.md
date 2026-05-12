@@ -1,6 +1,5 @@
 # markdown2pdf
 
-[![CI](https://github.com/woodyjon/markdown2pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/woodyjon/markdown2pdf/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Convert Markdown to PDF — three ways, one engine.
@@ -14,26 +13,6 @@ The same Rust code drives every entry point. Typst as the layout engine, Inter +
 
 ---
 
-## Architecture
-
-```
-rust/crates/core              ← markdown_to_pdf(md, opts) -> Vec<u8>
-   ├─→ rust/crates/cli        ← markdown2pdf binary (~20 MB, no runtime deps)
-   └─→ rust/crates/wasm       ← src/lib/wasm/  (~23 MB, lazy-loaded by the web app)
-
-src/                          ← SvelteKit static site
-   routes/+page.svelte         editor + preview + download (the playground)
-   routes/docs/                rendered docs pages
-   routes/llms.txt/            llmstxt.org index for AI agents
-   routes/llms-full.txt/       full doc bundle for AI agents
-```
-
-The conversion path: `markdown` → (`pulldown-cmark` events) → `typst` markup → `typst::compile` → PDF bytes. See [`rust/crates/core/src/convert.rs`](rust/crates/core/src/convert.rs) for the converter.
-
-The live preview pane uses `markdown-it` + `highlight.js` — separate from the PDF engine, just for instant visual feedback.
-
----
-
 ## Quickstart
 
 ### Use it
@@ -43,24 +22,30 @@ Just go to <https://markdown2pdf.eu>. Paste markdown, click Download.
 ### CLI
 
 ```sh
-# macOS / Linux / WSL
+# macOS / Linux / WSL — download + install the latest CLI release
 curl -fsSL https://markdown2pdf.eu/install.sh | sh
 
-# Windows (PowerShell)
+# Windows (PowerShell) — same, for Windows x86_64
 powershell -c "irm https://markdown2pdf.eu/install.ps1 | iex"
 ```
 
 Both installers detect your OS/arch, download the matching archive from the latest [GitHub Release](https://github.com/woodyjon/markdown2pdf/releases), verify SHA256, and install the binary to a sensible location (`/usr/local/bin/` on Unix, `%LOCALAPPDATA%\Programs\markdown2pdf\` on Windows). Or grab the archive manually from Releases. Or build from source:
 
 ```sh
+# build the CLI from source and install it into ~/.cargo/bin
 cargo install --git https://github.com/woodyjon/markdown2pdf markdown2pdf-cli
 ```
 
 Then:
 
 ```sh
+# convert a file to PDF (filename argument + explicit output path)
 markdown2pdf README.md -o README.pdf
+
+# read markdown from stdin, write PDF to stdout (pipe-friendly)
 cat notes.md | markdown2pdf > notes.pdf
+
+# set the PDF document title via -t (shows in the PDF reader's title bar)
 markdown2pdf -t "Q1 Report" report.md -o report.pdf
 ```
 
@@ -73,8 +58,12 @@ The skill lives in [`skills/markdown2pdf/`](skills/markdown2pdf/) and follows th
 Install user-level (Claude Code, available everywhere):
 
 ```sh
+# make sure the user-level skills dir exists, then move into it
 mkdir -p ~/.claude/skills
 cd ~/.claude/skills
+
+# download the repo tarball and extract just the skill folder
+# (strip-components=2 drops the `markdown2pdf-main/skills/` prefix)
 curl -L https://github.com/woodyjon/markdown2pdf/archive/refs/heads/main.tar.gz \
   | tar xz --strip-components=2 markdown2pdf-main/skills/markdown2pdf
 ```
@@ -101,6 +90,26 @@ std::fs::write("out.pdf", pdf)?;
 ```
 
 Full embed docs: [`/docs/embedding`](https://markdown2pdf.eu/docs/embedding) (or [`src/lib/docs/embedding.md`](src/lib/docs/embedding.md)).
+
+---
+
+## Architecture
+
+```
+rust/crates/core              ← markdown_to_pdf(md, opts) -> Vec<u8>
+   ├─→ rust/crates/cli        ← markdown2pdf binary (~20 MB, no runtime deps)
+   └─→ rust/crates/wasm       ← src/lib/wasm/  (~23 MB, lazy-loaded by the web app)
+
+src/                          ← SvelteKit static site
+   routes/+page.svelte         editor + preview + download (the playground)
+   routes/docs/                rendered docs pages
+   routes/llms.txt/            llmstxt.org index for AI agents
+   routes/llms-full.txt/       full doc bundle for AI agents
+```
+
+The conversion path: `markdown` → (`pulldown-cmark` events) → `typst` markup → `typst::compile` → PDF bytes. See [`rust/crates/core/src/convert.rs`](rust/crates/core/src/convert.rs) for the converter.
+
+The live preview pane uses `markdown-it` + `highlight.js` — separate from the PDF engine, just for instant visual feedback.
 
 ---
 
@@ -132,7 +141,7 @@ bun run build:wasm  # build the Rust → WASM module → src/lib/wasm/
 ### Dev server
 
 ```sh
-bun run dev   # http://localhost:5173
+bun run dev   # start the Vite dev server on http://localhost:5173
 ```
 
 Hot-reload works for Svelte / TS / docs markdown. **If you change the Rust source**, run `bun run build:wasm` again — the dev server picks up the new WASM on next page load.
@@ -140,7 +149,7 @@ Hot-reload works for Svelte / TS / docs markdown. **If you change the Rust sourc
 ### Tests
 
 ```sh
-bun run test:rust   # cargo test --workspace
+bun run test:rust   # run the Rust test suite (= cargo test --workspace)
 ```
 
 Covers the markdown→typst converter (headings, em/strong/strike, lists, task lists, tables, fenced code, etc.).
@@ -148,8 +157,8 @@ Covers the markdown→typst converter (headings, em/strong/strike, lists, task l
 ### Build the CLI locally
 
 ```sh
-bun run build:cli              # release build, ~2-3 min cold
-./rust/target/release/markdown2pdf --help
+bun run build:cli              # release build of the CLI binary, ~2-3 min cold
+./rust/target/release/markdown2pdf --help   # sanity-check the freshly built binary
 ```
 
 The binary is fully self-contained — no font files or external dependencies needed at runtime.
@@ -182,6 +191,7 @@ One-time setup:
 Verify the target resolves before the first deploy:
 
 ```sh
+# list configured hosting targets — confirms .firebaserc resolves correctly
 firebase target
 # → markdown2pdf (<your-site-id>)
 ```
@@ -189,6 +199,7 @@ firebase target
 Deploy:
 
 ```sh
+# one-shot: rebuild WASM + site, then ship to Firebase Hosting
 ./deploy.sh
 # = bun run build:wasm + bun run build + firebase deploy --only hosting
 # (also: bun run deploy)
@@ -214,6 +225,7 @@ To enable it on your fork, add the following to the GitHub repo (Settings → Se
 Easy way to generate the service account and store the secret automatically:
 
 ```sh
+# guided setup: creates a deploy service account and stores its key as a GitHub secret
 firebase init hosting:github
 # Pick the same project, decline its workflow scaffolding (we already have one).
 # It creates the service account, grants Hosting Admin, and uploads the JSON
@@ -249,7 +261,10 @@ Make sure the host serves `.wasm` with `Content-Type: application/wasm` and idea
 Tagging a release triggers [`.github/workflows/release.yml`](.github/workflows/release.yml):
 
 ```sh
+# create a release tag locally
 git tag v0.1.1
+
+# push the tag — this fires release.yml and publishes the GitHub Release
 git push origin v0.1.1
 ```
 
