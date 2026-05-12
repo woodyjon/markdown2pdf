@@ -586,11 +586,9 @@ fn slugify(s: &str) -> String {
             if lc.is_ascii_alphanumeric() || lc == '_' {
                 out.push(lc);
                 prev_dash = false;
-            } else if lc == '-' || lc.is_whitespace() {
-                if !prev_dash {
-                    out.push('-');
-                    prev_dash = true;
-                }
+            } else if (lc == '-' || lc.is_whitespace()) && !prev_dash {
+                out.push('-');
+                prev_dash = true;
             }
         }
     }
