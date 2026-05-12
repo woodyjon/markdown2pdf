@@ -142,6 +142,8 @@ bun run build:wasm  # build the Rust → WASM module → src/lib/wasm/
 
 `src/lib/wasm/` is gitignored; every fresh clone needs `bun run build:wasm` once.
 
+`bun install` also runs a `prepare` script that points `core.hooksPath` at [`.githooks/`](.githooks/). The [`pre-commit`](.githooks/pre-commit) hook runs `cargo fmt --check` + `cargo clippy -D warnings` whenever Rust sources are staged — the same gates CI enforces. Bypass once with `git commit --no-verify` if you ever need to.
+
 ### Dev server
 
 ```sh

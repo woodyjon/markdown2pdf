@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Runs the Rust style/lint checks CI gates on, before they reach a PR.
+# Bypass with `git commit --no-verify` if you really need to.
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# Only run cargo checks when Rust sources or manifests are staged.
+if git diff --cached --name-only --diff-filter=ACMR \
+   | grep -qE '^rust/.*\.(rs|toml)$|^rust/Cargo\.lock$'; then
+  echo "[pre-commit] cargo fmt --check"
+  cargo fmt --manifest-path rust/Cargo.toml --all -- --check
+  echo "[pre-commit] cargo clippy"
+  cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --quiet -- -D warnings
+fi

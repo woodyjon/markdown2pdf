@@ -14,7 +14,8 @@
     "build:wasm": "bash rust/build-wasm.sh",
     "build:cli": "cargo build --manifest-path rust/Cargo.toml --release -p markdown2pdf-cli",
     "test:rust": "cargo test --manifest-path rust/Cargo.toml --workspace",
-    "deploy": "bun run build:wasm && bun run build && firebase deploy --only hosting"
+    "deploy": "bun run build:wasm && bun run build && firebase deploy --only hosting",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
