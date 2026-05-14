@@ -87,6 +87,8 @@ A self-contained skill at [`skills/markdown2pdf/`](skills/markdown2pdf/), Anthro
 
 The skill is portable: copy the folder into `~/.claude/skills/`, into a project's `.claude/skills/`, or upload via the Anthropic Skills API.
 
+The repo also ships a `.claude-plugin/` manifest (`marketplace.json` + `plugin.json`) so the repo doubles as a single-plugin Claude Code marketplace. Users can install the skill with `/plugin marketplace add woodyjon/markdown2pdf` followed by `/plugin install markdown2pdf@markdown2pdf` instead of copying files by hand.
+
 ### CLI
 
 `markdown2pdf` is a single self-contained binary. Usage:

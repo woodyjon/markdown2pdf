@@ -8,7 +8,18 @@ When you ask Claude *"convert this README to PDF"*, *"make a PDF report from the
 
 ## Install the skill
 
-### Claude Code — user-level (available in every project)
+### Claude Code — via `/plugin` (recommended)
+
+The repo doubles as a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add it once, then install the `markdown2pdf` plugin (which bundles this skill):
+
+```text
+/plugin marketplace add woodyjon/markdown2pdf
+/plugin install markdown2pdf@markdown2pdf
+```
+
+Run `/plugin` with no arguments for the interactive manager (Discover / Installed / Marketplaces tabs). To update later: `/plugin marketplace update`, then reinstall — or manage it from the `/plugin` UI.
+
+### Claude Code — user-level, manual copy (available in every project)
 
 ```sh
 mkdir -p ~/.claude/skills

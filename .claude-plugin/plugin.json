@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "markdown2pdf",
+  "description": "Convert Markdown files (or markdown text) into clean, GitHub-styled vector PDFs via the markdown2pdf CLI. Auto-fetches the CLI on first use — no manual install needed.",
+  "version": "0.1.2",
+  "author": {
+    "name": "Jon",
+    "email": "woodyjon@gmail.com"
+  },
+  "homepage": "https://markdown2pdf.eu",
+  "repository": "https://github.com/woodyjon/markdown2pdf",
+  "license": "MIT",
+  "keywords": ["markdown", "pdf", "convert", "typst", "documents"]
+}

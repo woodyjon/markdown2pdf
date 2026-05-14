@@ -57,9 +57,18 @@ Full CLI docs: [`/docs/cli`](https://markdown2pdf.eu/docs/cli) (or [`src/lib/doc
 
 ### Claude skill
 
-The skill lives in [`skills/markdown2pdf/`](skills/markdown2pdf/) and follows the standard Anthropic skill format.
+The skill lives in [`skills/markdown2pdf/`](skills/markdown2pdf/) and follows the standard Anthropic skill format. The repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ([`.claude-plugin/`](.claude-plugin/)), so the easiest install is the `/plugin` command.
 
-Install user-level (Claude Code, available everywhere):
+**Recommended — install via `/plugin` (Claude Code):**
+
+```text
+/plugin marketplace add woodyjon/markdown2pdf
+/plugin install markdown2pdf@markdown2pdf
+```
+
+The first command registers this repo as a marketplace; the second installs the `markdown2pdf` plugin (which bundles the skill). Run `/plugin` on its own to open the interactive plugin manager.
+
+**Manual — copy the skill folder (any agent):**
 
 ```sh
 # make sure the user-level skills dir exists, then move into it
@@ -72,7 +81,7 @@ curl -L https://github.com/woodyjon/markdown2pdf/archive/refs/heads/main.tar.gz 
   | tar xz --strip-components=2 markdown2pdf-main/skills/markdown2pdf
 ```
 
-Then ask Claude: *"convert this README to PDF"*. The skill triggers, runs the CLI, and reports the output path.
+Either way, ask Claude: *"convert this README to PDF"*. The skill triggers, runs the CLI, and reports the output path.
 
 **You don't need to install the CLI separately.** The skill auto-fetches the latest binary into `~/.cache/markdown2pdf/` on first use (no sudo, no PATH change). If `markdown2pdf` is already on your PATH, the skill uses that one and skips the download.
 
@@ -307,8 +316,12 @@ src/
    ├─ llms-full.txt/+server.ts   full doc bundle
    └─ sitemap.xml/+server.ts
 
+.claude-plugin/                 Claude Code plugin + marketplace manifests
+├─ marketplace.json             repo-as-marketplace catalog (one plugin: markdown2pdf)
+└─ plugin.json                  plugin manifest — bundles skills/markdown2pdf/
+
 skills/
-└─ markdown2pdf/             drop into ~/.claude/skills/
+└─ markdown2pdf/             drop into ~/.claude/skills/ (or install via /plugin)
    ├─ SKILL.md
    └─ README.md
 
@@ -342,7 +355,7 @@ A few quick notes:
 - Use `bun`, not `npm`.
 - Markdown converter changes go in [`rust/crates/core/src/convert.rs`](rust/crates/core/src/convert.rs); add a test in the same file.
 - Doc edits go in [`src/lib/docs/*.md`](src/lib/docs) — the website, `/llms.txt`, and `/llms-full.txt` all rebuild from those sources.
-- Skill changes go in [`skills/markdown2pdf/SKILL.md`](skills/markdown2pdf/SKILL.md).
+- Skill changes go in [`skills/markdown2pdf/SKILL.md`](skills/markdown2pdf/SKILL.md). If you bump the skill, also bump `version` in [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) and [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) so `/plugin` installs pick up the change.
 
 ## Troubleshooting
 

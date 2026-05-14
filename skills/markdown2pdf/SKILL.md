@@ -5,7 +5,7 @@ license: MIT
 metadata:
   homepage: https://markdown2pdf.eu
   repository: https://github.com/woodyjon/markdown2pdf
-  version: "0.1.0"
+  version: "0.1.2"
 ---
 
 # markdown2pdf

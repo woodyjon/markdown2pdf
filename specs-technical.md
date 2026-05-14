@@ -131,6 +131,9 @@ rust/
     core/                # library — markdown_to_pdf(md, opts) -> Vec<u8>
     cli/                 # binary — `markdown2pdf` CLI
     wasm/                # cdylib — wasm-bindgen exports
+.claude-plugin/
+  marketplace.json       # repo-as-marketplace catalog (one plugin: markdown2pdf)
+  plugin.json            # Claude Code plugin manifest — bundles skills/markdown2pdf/
 skills/
   markdown2pdf/          # Anthropic-format Claude skill (SKILL.md + README.md)
 .github/workflows/

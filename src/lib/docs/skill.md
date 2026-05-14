@@ -8,9 +8,35 @@ The skill is self-contained: a single SKILL.md with trigger conditions, install 
 
 ## Install the skill
 
-The skill lives at [`skills/markdown2pdf/`](https://github.com/woodyjon/markdown2pdf/tree/main/skills/markdown2pdf) in the repo. Copy that folder into your skills directory.
+The skill lives at [`skills/markdown2pdf/`](https://github.com/woodyjon/markdown2pdf/tree/main/skills/markdown2pdf) in the repo. The repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces), so the quickest install is the `/plugin` command — no manual file copying.
 
-### Claude Code (user-level — available everywhere)
+### Claude Code (via `/plugin` — recommended)
+
+The repo ships a `.claude-plugin/` manifest that exposes the skill as a one-plugin marketplace. Inside Claude Code:
+
+```text
+/plugin marketplace add woodyjon/markdown2pdf
+/plugin install markdown2pdf@markdown2pdf
+```
+
+The first line registers the GitHub repo as a marketplace; the second installs the `markdown2pdf` plugin, which bundles this skill. Run `/plugin` on its own for the interactive manager (Discover / Installed / Marketplaces tabs), and `/plugin marketplace update` to pull a newer version later.
+
+You can also pre-trust the marketplace and enable the plugin for a project by committing this to `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "markdown2pdf": {
+      "source": { "source": "github", "repo": "woodyjon/markdown2pdf" }
+    }
+  },
+  "enabledPlugins": {
+    "markdown2pdf@markdown2pdf": true
+  }
+}
+```
+
+### Claude Code (user-level, manual copy — available everywhere)
 
 ```sh
 mkdir -p ~/.claude/skills
