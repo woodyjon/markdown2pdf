@@ -9,6 +9,15 @@ cd "$repo_root"
 # Only run cargo checks when Rust sources or manifests are staged.
 if git diff --cached --name-only --diff-filter=ACMR \
    | grep -qE '^rust/.*\.(rs|toml)$|^rust/Cargo\.lock$'; then
+  # Git runs hooks in a minimal shell that may not have ~/.cargo/bin on PATH.
+  if ! command -v cargo >/dev/null 2>&1 && [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+  fi
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "[pre-commit] cargo not found — install Rust (https://rustup.rs/)" >&2
+    echo "[pre-commit] or skip these checks with: git commit --no-verify" >&2
+    exit 1
+  fi
   echo "[pre-commit] cargo fmt --check"
   cargo fmt --manifest-path rust/Cargo.toml --all -- --check
   echo "[pre-commit] cargo clippy"
