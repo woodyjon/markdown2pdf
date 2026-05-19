@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Runs the Rust style/lint checks CI gates on, before they reach a PR.
+# Runs the same style/lint/audit checks CI gates on, before they reach a PR.
 # Bypass with `git commit --no-verify` if you really need to.
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
 # Only run cargo checks when Rust sources or manifests are staged.
-if git diff --cached --name-only --diff-filter=ACMR \
-   | grep -qE '^rust/.*\.(rs|toml)$|^rust/Cargo\.lock$'; then
+if grep -qE '^rust/.*\.(rs|toml)$|^rust/Cargo\.lock$' <<<"$staged"; then
   # Git runs hooks in a minimal shell that may not have ~/.cargo/bin on PATH.
   if ! command -v cargo >/dev/null 2>&1 && [ -f "$HOME/.cargo/env" ]; then
     . "$HOME/.cargo/env"
@@ -22,4 +23,16 @@ if git diff --cached --name-only --diff-filter=ACMR \
   cargo fmt --manifest-path rust/Cargo.toml --all -- --check
   echo "[pre-commit] cargo clippy"
   cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --quiet -- -D warnings
+fi
+
+# Only run the JS dep audit when package.json or bun.lock are staged.
+# Mirrors the `bun audit --audit-level=high` step in .github/workflows/ci.yml.
+if grep -qE '^(package\.json|bun\.lock)$' <<<"$staged"; then
+  if ! command -v bun >/dev/null 2>&1; then
+    echo "[pre-commit] bun not found — install Bun (https://bun.sh/)" >&2
+    echo "[pre-commit] or skip these checks with: git commit --no-verify" >&2
+    exit 1
+  fi
+  echo "[pre-commit] bun audit --audit-level=high"
+  bun audit --audit-level=high
 fi
