@@ -8,7 +8,7 @@ A lightweight project that converts Markdown text into downloadable PDF document
 
 1. **Web playground** at <https://markdown2pdf.eu> — paste, preview, download.
 2. **Command-line tool** (`markdown2pdf`) — single binary for use in scripts and terminals.
-3. **Claude skill** at [`skills/markdown2pdf/`](skills/markdown2pdf/) — drop-in skill so any Claude agent can convert markdown to PDF on request.
+3. **Agent skill** at [`skills/markdown2pdf/`](skills/markdown2pdf/) — drop-in skill so any agent that supports skills (Claude, Codex, Pi, etc.) can convert markdown to PDF on request.
 
 The Rust crate [`markdown2pdf-core`](rust/crates/core) is also available for embedding in other Rust programs.
 
@@ -63,7 +63,7 @@ The Rust crate [`markdown2pdf-core`](rust/crates/core) is also available for emb
 ### Documentation
 
 - A `/docs` section accessible from the playground header.
-- Pages: Overview, Web playground, CLI, Claude skill, Embed in Rust.
+- Pages: Overview, Web playground, CLI, Agent skill, Embed in Rust.
 - Sidebar navigation (collapsible on mobile). Doc content renders with the same `markdown-body` style as the playground preview.
 - Doc source lives in [`src/lib/docs/*.md`](src/lib/docs/) — single source of truth for the docs site, the LLM endpoints, and the README cross-links.
 
@@ -76,18 +76,18 @@ For AI agents that want a machine-readable view of the project:
 
 Both are prerendered (`+server.ts` with `export const prerender = true`) and ship as static text files.
 
-### Claude skill
+### Agent skill
 
-A self-contained skill at [`skills/markdown2pdf/`](skills/markdown2pdf/), Anthropic-format (`SKILL.md` + `README.md`):
+A self-contained skill at [`skills/markdown2pdf/`](skills/markdown2pdf/), in the standard `SKILL.md` + `README.md` format supported by Claude, Codex, Pi, and other agents:
 
 - Triggers on natural-language requests like "convert this README to PDF", "make a PDF report from these notes".
 - Calls the `markdown2pdf` CLI as an external command (the binary must be installed separately).
 - Tells the user how to install the CLI if missing.
 - Handles file → file, stdin/stdout, inline markdown, and batch conversion.
 
-The skill is portable: copy the folder into `~/.claude/skills/`, into a project's `.claude/skills/`, or upload via the Anthropic Skills API.
+The recommended install path is to simply ask the user's agent to install the skill from the GitHub repo — most agents know how to fetch a skill from a repository URL and place it in their own skills directory. The skill is also portable as a folder: copy it into `~/.claude/skills/`, into a project's `.claude/skills/`, or upload via the Anthropic Skills API.
 
-The repo also ships a `.claude-plugin/` manifest (`marketplace.json` + `plugin.json`) so the repo doubles as a single-plugin Claude Code marketplace. Users can install the skill with `/plugin marketplace add woodyjon/markdown2pdf` followed by `/plugin install markdown2pdf@markdown2pdf` instead of copying files by hand.
+The repo also ships a `.claude-plugin/` manifest (`marketplace.json` + `plugin.json`) so the repo doubles as a single-plugin Claude Code marketplace. Users on Claude Code can install with `/plugin marketplace add woodyjon/markdown2pdf` followed by `/plugin install markdown2pdf@markdown2pdf` instead of copying files by hand.
 
 ### CLI
 

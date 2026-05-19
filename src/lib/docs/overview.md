@@ -2,7 +2,7 @@
 
 Convert Markdown to PDF — three ways, one engine.
 
-The same Rust crate ([`markdown2pdf-core`](https://github.com/woodyjon/markdown2pdf/tree/main/rust/crates/core)) drives every entry point: a [web playground](/docs/playground), a [command-line tool](/docs/cli), a [Claude skill](/docs/skill) for AI agents, and an [embeddable Rust API](/docs/embedding) for your own programs.
+The same Rust crate ([`markdown2pdf-core`](https://github.com/woodyjon/markdown2pdf/tree/main/rust/crates/core)) drives every entry point: a [web playground](/docs/playground), a [command-line tool](/docs/cli), an [agent skill](/docs/skill) for Claude / Codex / Pi / your other preferred agent, and an [embeddable Rust API](/docs/embedding) for your own programs.
 
 ## Why another markdown-to-PDF tool
 
@@ -20,7 +20,7 @@ Because most options are either:
 |------------------------------------------------|--------------------------------------|
 | Convert a markdown file once, no install       | [Web playground](/docs/playground)   |
 | Convert files from a script or terminal        | [CLI](/docs/cli)                     |
-| Have Claude convert markdown for you           | [Claude skill](/docs/skill)          |
+| Have your agent convert markdown for you       | [Agent skill](/docs/skill)           |
 | Generate PDFs from your own Rust program       | [Rust crate](/docs/embedding)        |
 
 ## Open source

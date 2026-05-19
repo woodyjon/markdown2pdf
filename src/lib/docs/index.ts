@@ -15,7 +15,7 @@ export const docs: DocPage[] = [
 	{ slug: 'overview', title: 'Overview', tagline: 'What markdown2pdf is and why it exists', source: overview },
 	{ slug: 'playground', title: 'Web playground', tagline: 'Use it in the browser, no install', source: playground },
 	{ slug: 'cli', title: 'CLI', tagline: 'Single binary, file in / PDF out', source: cli },
-	{ slug: 'skill', title: 'Claude skill', tagline: 'Drop-in skill for Claude agents', source: skill },
+	{ slug: 'skill', title: 'Agent skill', tagline: 'Drop-in skill for Claude, Codex, Pi and other agents', source: skill },
 	{ slug: 'embedding', title: 'Embed in Rust', tagline: 'Use the core crate from your own code', source: embedding }
 ];
 

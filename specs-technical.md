@@ -135,7 +135,7 @@ rust/
   marketplace.json       # repo-as-marketplace catalog (one plugin: markdown2pdf)
   plugin.json            # Claude Code plugin manifest — bundles skills/markdown2pdf/
 skills/
-  markdown2pdf/          # Anthropic-format Claude skill (SKILL.md + README.md)
+  markdown2pdf/          # agent skill (SKILL.md + README.md) — Claude, Codex, Pi, etc.
 .github/workflows/
   ci.yml                 # Rust tests + web build on push/PR
   release.yml            # cross-compile CLI binaries on tag push

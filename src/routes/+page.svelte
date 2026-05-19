@@ -99,7 +99,7 @@
 			</svg>
 			<span>
 				<strong>Using an AI agent?</strong> Install the
-				<a href="/docs/skill">Claude skill</a> — your agent will convert Markdown to PDF on request (auto-installs the CLI).
+				<a href="/docs/skill">agent skill</a> — works with Claude, Codex, Pi or your other preferred agent. Just ask it to grab the skill from the GitHub repo and convert Markdown to PDF on request (auto-installs the CLI).
 			</span>
 		</div>
 		<div class="info-item">

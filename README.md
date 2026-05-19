@@ -6,7 +6,7 @@ Convert Markdown to PDF — three ways, one engine.
 
 - **Web playground**: <https://markdown2pdf.eu>
 - **CLI**: single binary, `markdown2pdf in.md -o out.pdf`
-- **Claude skill** (or any other ai agent): drop-in skill so your agent can do it for you ([`skills/markdown2pdf/`](skills/markdown2pdf/))
+- **Agent skill** (Claude, Codex, Pi or your other preferred agent): drop-in skill so your agent can do it for you ([`skills/markdown2pdf/`](skills/markdown2pdf/))
 - **Rust crate**: embed the converter in your own program ([`rust/crates/core`](rust/crates/core))
 
 The same Rust code drives every entry point. Typst as the layout engine, Inter + JetBrains Mono embedded for portable vector PDFs.
@@ -21,7 +21,11 @@ Just go to <https://markdown2pdf.eu>. Paste markdown, click Download.
 
 ## AI agent skill
 
-Just tell your agent to check that repo and grab the skill, then ask him to convert a markdown file to a pdf file.
+The skill works with any agent that supports skills — Claude (Code, the API, claude.ai), Codex, Pi, or your other preferred agent. Most agents know how to install a skill on their own, so the simplest path is to ask yours:
+
+> Install the markdown2pdf skill from <https://github.com/woodyjon/markdown2pdf>
+
+Then ask it to convert a markdown file to a PDF.
 
 ### CLI
 
@@ -55,11 +59,17 @@ markdown2pdf -t "Q1 Report" report.md -o report.pdf
 
 Full CLI docs: [`/docs/cli`](https://markdown2pdf.eu/docs/cli) (or [`src/lib/docs/cli.md`](src/lib/docs/cli.md)).
 
-### Claude skill
+### Agent skill
 
-The skill lives in [`skills/markdown2pdf/`](skills/markdown2pdf/) and follows the standard Anthropic skill format. The repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ([`.claude-plugin/`](.claude-plugin/)), so the easiest install is the `/plugin` command.
+The skill lives in [`skills/markdown2pdf/`](skills/markdown2pdf/) and follows the standard `SKILL.md` format used by Claude, Codex, Pi, and other agents that support skills.
 
-**Recommended — install via `/plugin` (Claude Code):**
+**Recommended — just ask your agent:**
+
+> Install the markdown2pdf skill from <https://github.com/woodyjon/markdown2pdf>
+
+Most modern agents know how to fetch a skill from a GitHub repo and put it in the right place. After that, ask: *"convert this README to PDF"*.
+
+**Claude Code — via `/plugin`:** the repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ([`.claude-plugin/`](.claude-plugin/)):
 
 ```text
 /plugin marketplace add woodyjon/markdown2pdf
@@ -81,7 +91,7 @@ curl -L https://github.com/woodyjon/markdown2pdf/archive/refs/heads/main.tar.gz 
   | tar xz --strip-components=2 markdown2pdf-main/skills/markdown2pdf
 ```
 
-Either way, ask Claude: *"convert this README to PDF"*. The skill triggers, runs the CLI, and reports the output path.
+Replace `~/.claude/skills` with whichever skills directory your agent reads from. Then ask the agent: *"convert this README to PDF"*. The skill triggers, runs the CLI, and reports the output path.
 
 **You don't need to install the CLI separately.** The skill auto-fetches the latest binary into `~/.cache/markdown2pdf/` on first use (no sudo, no PATH change). If `markdown2pdf` is already on your PATH, the skill uses that one and skips the download.
 

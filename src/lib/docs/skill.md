@@ -1,18 +1,26 @@
-# Claude skill
+# Agent skill
 
-A drop-in [Claude skill](https://docs.claude.com/en/docs/claude-code/skills) so any Claude (Code, the API, claude.ai with skills enabled) can convert Markdown to PDF on request.
+A drop-in [agent skill](https://docs.claude.com/en/docs/claude-code/skills) so any coding agent — Claude (Code, the API, claude.ai), Codex, Pi, or your other preferred agent — can convert Markdown to PDF on request.
 
-The skill is self-contained: a single SKILL.md with trigger conditions, install logic, and usage examples. Claude reads it on demand and runs the CLI when the user asks for a PDF.
+The skill is self-contained: a single SKILL.md with trigger conditions, install logic, and usage examples. The agent reads it on demand and runs the CLI when the user asks for a PDF.
 
 **The user does not need to install the CLI separately.** The skill auto-fetches the latest `markdown2pdf` binary into `~/.cache/markdown2pdf/` on first use — no sudo, no PATH change, no manual download. If `markdown2pdf` is already on the user's PATH, the skill uses that one and skips the download.
 
 ## Install the skill
 
-The skill lives at [`skills/markdown2pdf/`](https://github.com/woodyjon/markdown2pdf/tree/main/skills/markdown2pdf) in the repo. The repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces), so the quickest install is the `/plugin` command — no manual file copying.
+### Just ask your agent (recommended)
 
-### Claude Code (via `/plugin` — recommended)
+Most modern coding agents know how to install a skill from a GitHub repo. The simplest path is to tell yours:
 
-The repo ships a `.claude-plugin/` manifest that exposes the skill as a one-plugin marketplace. Inside Claude Code:
+> Install the markdown2pdf skill from <https://github.com/woodyjon/markdown2pdf>
+
+The agent will fetch the skill folder (`skills/markdown2pdf/`) and drop it into the right place for its runtime — `~/.claude/skills/` for Claude Code, the equivalent skills directory for Codex, Pi, and others. After that, ask it to *"convert this README to PDF"* and the skill takes over.
+
+This works for any agent that supports skills. The skill folder follows the standard `SKILL.md` format, so it is portable across runtimes.
+
+### Claude Code — via `/plugin`
+
+The repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces), so inside Claude Code you can install through the plugin manager:
 
 ```text
 /plugin marketplace add woodyjon/markdown2pdf
@@ -36,7 +44,9 @@ You can also pre-trust the marketplace and enable the plugin for a project by co
 }
 ```
 
-### Claude Code (user-level, manual copy — available everywhere)
+### Manual copy (any agent)
+
+If your agent can't fetch the skill itself, drop the folder in by hand:
 
 ```sh
 mkdir -p ~/.claude/skills
@@ -45,6 +55,8 @@ curl -L https://github.com/woodyjon/markdown2pdf/archive/refs/heads/main.tar.gz 
   | tar xz --strip-components=2 markdown2pdf-main/skills/markdown2pdf
 ```
 
+Replace `~/.claude/skills` with whichever skills directory your agent reads from.
+
 Or clone the whole repo and symlink:
 
 ```sh
@@ -52,7 +64,7 @@ git clone https://github.com/woodyjon/markdown2pdf.git
 ln -s "$(pwd)/markdown2pdf/skills/markdown2pdf" ~/.claude/skills/markdown2pdf
 ```
 
-### Claude Code (project-level)
+### Project-level (Claude Code)
 
 ```sh
 mkdir -p .claude/skills
@@ -65,7 +77,7 @@ Upload the skill folder via the [Skills API](https://docs.claude.com/en/api/agen
 
 ## How it picks the right binary
 
-When Claude triggers the skill and `markdown2pdf` isn't on the user's `PATH`, the embedded snippet in `SKILL.md`:
+When the agent triggers the skill and `markdown2pdf` isn't on the user's `PATH`, the embedded snippet in `SKILL.md`:
 
 1. Checks `command -v markdown2pdf` — if found, uses it.
 2. Checks `~/.cache/markdown2pdf/markdown2pdf` — if cached, uses it.
@@ -102,7 +114,7 @@ Both installers run the same logic the skill uses internally, but install to a p
 
 ## What it does
 
-When the user asks for a PDF — *"convert this README to PDF"*, *"make a PDF report from these notes"*, *"export this to PDF"* — Claude:
+When the user asks for a PDF — *"convert this README to PDF"*, *"make a PDF report from these notes"*, *"export this to PDF"* — the agent:
 
 1. Resolves or downloads the binary (one-time `~/.cache/markdown2pdf/` setup).
 2. Locates or creates the source markdown.
@@ -113,4 +125,4 @@ The skill knows the CLI flags, file formats, and common patterns (stdin/stdout p
 
 ## Why a skill (and not just a tool call)
 
-Skills let Claude pick up the capability without you wiring it into your prompt every time. Once installed, Claude triggers the skill whenever a markdown→PDF request comes up — across projects, across sessions. You don't need to remember the install command, the binary location, or the CLI flags.
+Skills let the agent pick up the capability without you wiring it into your prompt every time. Once installed, the agent triggers the skill whenever a markdown→PDF request comes up — across projects, across sessions. You don't need to remember the install command, the binary location, or the CLI flags.

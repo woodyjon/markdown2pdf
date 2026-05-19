@@ -73,9 +73,9 @@ cargo install --git https://github.com/woodyjon/markdown2pdf markdown2pdf-cli
 
 The binary lands in `~/.cargo/bin/markdown2pdf`.
 
-### Via the Claude skill
+### Via the agent skill
 
-If you only want PDFs through Claude, install the [Claude skill](/docs/skill) instead — it auto-fetches the binary into `~/.cache/markdown2pdf/` on first use. No manual install step.
+If you only want PDFs through your coding agent (Claude, Codex, Pi, or another), install the [agent skill](/docs/skill) instead — just ask your agent to grab it from <https://github.com/woodyjon/markdown2pdf>. The skill auto-fetches the binary into `~/.cache/markdown2pdf/` on first use. No manual install step.
 
 ## Usage
 

@@ -8,7 +8,7 @@ export function GET() {
 	const lines: string[] = [];
 	lines.push('# markdown2pdf');
 	lines.push('');
-	lines.push('> Convert Markdown to PDF — same Rust engine drives a web playground, a CLI, a Claude skill, and an embeddable Rust crate. MIT licensed.');
+	lines.push('> Convert Markdown to PDF — same Rust engine drives a web playground, a CLI, an agent skill (Claude / Codex / Pi / etc.), and an embeddable Rust crate. MIT licensed.');
 	lines.push('');
 	lines.push('## Docs');
 	lines.push('');
@@ -21,7 +21,7 @@ export function GET() {
 	lines.push('');
 	lines.push('- [GitHub repository](https://github.com/woodyjon/markdown2pdf): Source, issues, releases');
 	lines.push('- [CLI binaries](https://github.com/woodyjon/markdown2pdf/releases): Prebuilt for macOS, Linux, Windows');
-	lines.push('- [Claude skill](https://github.com/woodyjon/markdown2pdf/tree/main/skills/markdown2pdf): Drop into ~/.claude/skills/');
+	lines.push('- [Agent skill](https://github.com/woodyjon/markdown2pdf/tree/main/skills/markdown2pdf): Works with Claude, Codex, Pi, etc. — just ask your agent to install it from this repo, or drop it into ~/.claude/skills/');
 	lines.push('');
 	lines.push('## Optional');
 	lines.push('');
